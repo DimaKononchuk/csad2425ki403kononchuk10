@@ -25,6 +25,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         java-version: '21'
+        distribution: 'temurin'
 
     # Компілюємо проект за допомогою Maven
     - name: Compile with Maven
@@ -67,7 +68,7 @@ jobs:
 
       # Встановлюємо Arduino CLI для компіляції коду Arduino
       - name: Set up Arduino CLI
-        uses: arduino/setup-arduino-cli@v1
+        uses: arduino/setup-arduino-cli@v3
         with:
           version: '0.19.2'  # Вказуємо версію Arduino CLI
 

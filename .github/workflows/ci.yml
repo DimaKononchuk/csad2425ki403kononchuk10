@@ -68,7 +68,7 @@ jobs:
 
       # Встановлюємо Arduino CLI для компіляції коду Arduino
       - name: Set up Arduino CLI
-        uses: arduino/setup-arduino-cli@v3
+        uses: arduino/setup-arduino-cli@v1
         with:
           version: '0.19.2'  # Вказуємо версію Arduino CLI
 

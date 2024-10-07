@@ -79,8 +79,8 @@ jobs:
       # Компілюємо Arduino-проєкт для Arduino Uno
       - name: Build Arduino Project
         run: |
-          arduino-cli compile --fqbn arduino:avr:uno server-rock-paper-scissors/server.ino  # Компіляція для Arduino Uno
-
+          arduino-cli compile --fqbn arduino:avr:uno server-rock-paper-scissors/server-rock-paper-scissors.ino  # Компіляція для Arduino Uno
+          
       # Завантажуємо результат компіляції Arduino як артефакт
       - name: Upload Arduino Build Artifact
         uses: actions/upload-artifact@v3

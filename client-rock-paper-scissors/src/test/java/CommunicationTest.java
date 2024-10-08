@@ -6,17 +6,20 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 
 public class CommunicationTest {
 
+    private SerialPort serialPort;
     private SerialCommunicator communicator;
     private String testPortName = "COM2"; // Вкажіть реальний порт, який використовується вашим Arduino
     private int baudRate = 9600;
 
     @BeforeEach
     public void setUp() {
-        communicator = new SerialCommunicator();
+        serialPort=mock(SerialPort.class);
+        communicator = new SerialCommunicator(serialPort);
         boolean portOpened = communicator.openPort(testPortName, baudRate);
         assertTrue(portOpened, "Порт має бути відкритий перед тестами");
     }

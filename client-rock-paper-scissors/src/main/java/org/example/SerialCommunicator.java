@@ -5,6 +5,11 @@ import com.fazecast.jSerialComm.SerialPort;
 public class SerialCommunicator {
     private SerialPort arduinoPort;
 
+    public SerialCommunicator(SerialPort serialPort) {
+    }
+    public SerialCommunicator() {
+    }
+
     // Функція для відкриття порту
     public boolean openPort(String portName, int baudRate) {
         // Знаходимо порт за назвою

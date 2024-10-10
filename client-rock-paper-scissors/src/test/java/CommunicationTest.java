@@ -1,75 +1,81 @@
 import com.fazecast.jSerialComm.SerialPort;
 import org.example.SerialCommunicator;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
+import java.nio.charset.StandardCharsets;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
+
 
 
 public class CommunicationTest {
 
-    private SerialPort serialPort;
-    private SerialCommunicator communicator;
-    private String testPortName = "COM2"; // Вкажіть реальний порт, який використовується вашим Arduino
-    private int baudRate = 9600;
+    private SerialPort mockSerialPort;
+    private SerialCommunicator serialCommunicator;
 
     @BeforeEach
-    public void setUp() {
-        serialPort=mock(SerialPort.class);
-        communicator = new SerialCommunicator(serialPort);
-        boolean portOpened = communicator.openPort(testPortName, baudRate);
-        assertTrue(portOpened, "Порт має бути відкритий перед тестами");
-    }
-
-    @AfterEach
-    public void tearDown() {
-        communicator.closePort();
+    void setUp() {
+        mockSerialPort = mock(SerialPort.class);
+        serialCommunicator = new SerialCommunicator(mockSerialPort);
     }
 
     @Test
-    public void testOpenAndClosePort() {
-        communicator.closePort();
-        boolean portOpened = communicator.openPort(testPortName, baudRate);
-        assertTrue(portOpened, "Порт має успішно відкритися після закриття");
+    void openPortTest() {
+        // Arrange
+        when(mockSerialPort.openPort()).thenReturn(true);
+
+        // Act
+        boolean result = serialCommunicator.openPort();
+
+        // Assert
+        assertTrue(result, "Port should be opened successfully.");
+        verify(mockSerialPort).setComPortParameters(9600, 8, 1, SerialPort.NO_PARITY);
+        verify(mockSerialPort).setComPortTimeouts(SerialPort.TIMEOUT_READ_BLOCKING, 1000, 1000);
+        verify(mockSerialPort).openPort();
     }
 
     @Test
-    public void testSendMessageAndReceiveResponse() throws InterruptedException {
-        // Надсилаємо тестове повідомлення
-        String testMessage = "Hello, Arduino!";
-        boolean messageSent = communicator.sendMessage(testMessage);
-        assertTrue(messageSent, "Повідомлення має бути успішно надіслано");
+    void closePortTest() {
+        // Arrange
+        when(mockSerialPort.isOpen()).thenReturn(true);
 
-        // Додаємо затримку, щоб дати Arduino час на обробку та відповісти
-        Thread.sleep(5000); // Час затримки залежить від відповіді вашого пристрою
+        // Act
+        serialCommunicator.closePort();
 
-        // Чекаємо на відповідь від Arduino
-        if (communicator.hasAvailableData()) {
-            String response = communicator.readMessage();
-            assertNotNull(response, "Повинно отримати відповідь від Arduino");
-            System.out.println("Отримана відповідь: " + response);
-        } else {
-            fail("Немає доступних даних для читання");
-        }
+        // Assert
+        verify(mockSerialPort).closePort();
     }
-
     @Test
-    public void testHasAvailableData() throws InterruptedException {
-        // Спочатку переконаємося, що на початку немає даних
-        assertFalse(communicator.hasAvailableData(), "На початку не повинно бути доступних даних");
+    void readMessageTest() {
+        // Arrange
+        when(mockSerialPort.isOpen()).thenReturn(true);
+        byte[] testData = "Response from Arduino".getBytes(StandardCharsets.UTF_8);
+        when(mockSerialPort.readBytes(any(byte[].class), anyInt())).thenAnswer(invocation -> {
+            byte[] buffer = invocation.getArgument(0);
+            System.arraycopy(testData, 0, buffer, 0, testData.length);
+            return testData.length;
+        });
 
-        // Надсилаємо тестове повідомлення на Arduino
-        String testMessage = "Test data check";
-        boolean messageSent = communicator.sendMessage(testMessage);
-        assertTrue(messageSent, "Повідомлення має бути надіслано");
+        // Act
+        String result = serialCommunicator.readMessage();
 
-        // Додаємо затримку, щоб дати Arduino час відповісти
-        Thread.sleep(5000);
-
-        // Тепер перевіряємо, чи доступні дані для читання
-        assertTrue(communicator.hasAvailableData(), "Дані мають бути доступні після отримання відповіді");
+        // Assert
+        assertEquals("Response from Arduino", result);
     }
+    @Test
+    void sendMessageTest() {
+        // Arrange
+        when(mockSerialPort.isOpen()).thenReturn(true);
+        when(mockSerialPort.writeBytes(any(byte[].class), anyInt())).thenReturn(1);
+        String message = "Test message";
+
+        // Act
+        boolean result = serialCommunicator.sendMessage(message);
+
+        // Assert
+        assertTrue(result, "Message should be sent successfully.");
+        verify(mockSerialPort).writeBytes(message.getBytes(StandardCharsets.UTF_8), message.length());
+    }
+
+
 }

@@ -1,36 +1,37 @@
 package org.example;
 
 import com.fazecast.jSerialComm.SerialPort;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class SerialCommunicator {
-    private SerialPort arduinoPort;
+    private final SerialPort arduinoPort;
 
-    public SerialCommunicator(SerialPort serialPort) {
-    }
-    public SerialCommunicator() {
-    }
+
 
     // Функція для відкриття порту
-    public boolean openPort(String portName, int baudRate) {
-        // Знаходимо порт за назвою
-        arduinoPort = SerialPort.getCommPort(portName);
+    public boolean openPort() {//String portName, int baudRate
+         //Знаходимо порт за назвою
+        //arduinoPort = SerialPort.getCommPort(portName);
         if (arduinoPort == null) {
             System.out.println("Порт не знайдено.");
             return false;
         }
 
         // Налаштування порту
-        arduinoPort.setComPortParameters(baudRate, 8, 1, SerialPort.NO_PARITY);
+        arduinoPort.setComPortParameters(9600, 8, 1, SerialPort.NO_PARITY);
         arduinoPort.setComPortTimeouts(SerialPort.TIMEOUT_READ_BLOCKING, 1000, 1000);
 
         // Відкриваємо порт
         if (arduinoPort.openPort()) {
-            System.out.println("Порт " + portName + " відкрито.");
+            System.out.println("Порт " + arduinoPort.getSystemPortName() + " відкрито.");
             return true;
         } else {
             System.out.println("Не вдалося відкрити порт.");
             return false;
         }
+
     }
 
     // Функція для закриття порту

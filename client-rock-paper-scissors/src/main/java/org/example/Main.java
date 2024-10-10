@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        SerialCommunicator communicator = new SerialCommunicator();
+
 
         // Отримуємо всі доступні порти
         SerialPort[] ports = SerialPort.getCommPorts();
@@ -27,10 +27,10 @@ public class Main {
             return;
         }
 
-        String portName = ports[chosenPort].getSystemPortName();
-
+        //String portName = .getSystemPortName();
+        SerialCommunicator communicator = new SerialCommunicator(ports[chosenPort]);
         // Відкриття порту
-        if (!communicator.openPort(portName, 9600)) {
+        if (!communicator.openPort()) {
             return; // Вихід, якщо не вдалося відкрити порт
         }
 

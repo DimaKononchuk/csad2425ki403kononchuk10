@@ -1,0 +1,89 @@
+name: CI Arduino and Java
+
+on:
+  # Запуск на кожен push і pull request до будь-якої гілки
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  # Перше завдання для побудови і тестування Java-проєкту
+  build:
+
+    runs-on: ubuntu-latest  # Використання останньої версії Ubuntu для CI
+
+    steps:
+    # Клонуємо репозиторій, щоб отримати весь код проєкту
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Встановлюємо JDK 21 для компіляції Java-коду
+    - name: Set up JDK 21
+      uses: actions/setup-java@v3
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    # Компілюємо проект за допомогою Maven
+    - name: Compile with Maven
+      run: mvn compile
+      working-directory: client-rock-paper-scissors  # Вказуємо робочу директорію
+
+    # Запускаємо тести для Java-проєкту
+    - name: Run tests
+      run: mvn test
+      working-directory: client-rock-paper-scissors  # Вказуємо робочу директорію
+
+    # Завантажуємо результати тестів як артефакти, навіть якщо тести не пройдуть (if: always())
+    - name: Upload test results
+      if: always()  # Завантажуємо навіть у випадку помилки тестів
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results  # Ім'я артефакта
+        path: client-rock-paper-scissors/target/surefire-reports/  # Шлях до результатів тестів
+
+    # Пакуємо Java-проєкт в JAR-файл за допомогою Maven
+    - name: Package JAR
+      run: mvn package
+      working-directory: client-rock-paper-scissors  # Вказуємо робочу директорію
+
+    # Завантажуємо JAR-файл як артефакт після побудови проєкту
+    - name: Upload JAR artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: built-app  # Ім'я артефакта JAR
+        path: client-rock-paper-scissors/target/*.jar  # Шлях до побудованого JAR
+
+  # Друге завдання для компіляції Arduino-проєкту
+  arduino:
+    runs-on: ubuntu-latest  # Використання останньої версії Ubuntu для CI
+
+    steps:
+      # Клонуємо репозиторій, щоб отримати код Arduino
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Встановлюємо Arduino CLI для компіляції коду Arduino
+      - name: Set up Arduino CLI
+        uses: arduino/setup-arduino-cli@v1
+        with:
+          version: '0.19.2'  # Вказуємо версію Arduino CLI
+
+      # Встановлюємо платформу Arduino для компіляції для платформи AVR (наприклад, Arduino Uno)
+      - name: Install Arduino AVR platform
+        run: arduino-cli core install arduino:avr  # Встановлюємо ядро для AVR
+
+      # Компілюємо Arduino-проєкт для Arduino Uno
+      - name: Build Arduino Project
+        run: |
+          arduino-cli compile --fqbn arduino:avr:uno server-rock-paper-scissors/server-rock-paper-scissors.ino  # Компіляція для Arduino Uno
+          
+      # Завантажуємо результат компіляції Arduino як артефакт
+      - name: Upload Arduino Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: arduino-build  # Ім'я артефакта Arduino
+          path: server-rock-paper-scissors/build/*  # Шлях до результатів компіляції Arduino
